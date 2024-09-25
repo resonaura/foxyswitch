@@ -97,7 +97,7 @@ echo -e "${GREEN}${CHECK_MARK} Project built successfully.${RESET}"
 # Create the service file
 echo -e "${GEAR} Creating service file for $SERVICE_NAME...${RESET}"
 
-cat > /etc/systemd/system/$SERVICE_NAME.service << EOL
+sudo bash -c "cat > /etc/systemd/system/$SERVICE_NAME.service << EOL
 [Unit]
 Description=Foxy Switch API Service
 After=network-online.target
@@ -114,21 +114,21 @@ Environment=NODE_ENV=production
 
 [Install]
 WantedBy=multi-user.target
-EOL
+EOL"
 
 # Reload systemd to update the configuration
 echo -e "${GEAR} Reloading systemd daemon...${RESET}"
-systemctl daemon-reload
+sudo systemctl daemon-reload
 echo -e "${GREEN}${CHECK_MARK} Systemd daemon reloaded.${RESET}"
 
 # Enable the service to start on boot
 echo -e "${SPARKLE} Enabling $SERVICE_NAME service to start on boot...${RESET}"
-systemctl enable $SERVICE_NAME
+sudo systemctl enable $SERVICE_NAME
 echo -e "${GREEN}${CHECK_MARK} $SERVICE_NAME service enabled to start on boot.${RESET}"
 
 # Start the service
 echo -e "${GEAR} Starting $SERVICE_NAME service...${RESET}"
-systemctl start $SERVICE_NAME
+sudo systemctl start $SERVICE_NAME
 echo -e "${GREEN}${CHECK_MARK} $SERVICE_NAME service started successfully.${RESET}"
 
 echo -e "${GREEN}${SPARKLE} Foxy Switch API has been installed and started!${RESET}"
