@@ -4,7 +4,7 @@
 SERVICE_NAME="foxyswitch-api"
 
 # Check if the service is installed
-if systemctl list-units --full -all | grep -Fq "$SERVICE_NAME.service"; then
+if sudo systemctl list-units --full -all | grep -Fq "$SERVICE_NAME.service"; then
     # Stopping the service
     echo "Stopping $SERVICE_NAME service..."
     sudo systemctl stop $SERVICE_NAME
