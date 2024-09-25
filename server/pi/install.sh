@@ -16,7 +16,7 @@ CROSS_MARK="❌"
 BUILD_EMOJI="🛠️"
 LIGHTBULB="💡"
 PACKAGE="📦"
-GEAR="⚙️"
+GEAR="⚙️ "
 SPARKLE="✨"
 
 # Automatically determine the path to Node.js
@@ -42,13 +42,6 @@ WORKING_DIRECTORY=$(pwd)
 
 # User name
 USER=$(whoami)
-
-# Check if the script is run as root, if not, re-run with sudo
-if [ "$EUID" -ne 0 ]; then
-    echo -e "${YELLOW}${GEAR} This script requires superuser privileges. Re-running with sudo...${RESET}"
-    sudo bash "$0" "$@"
-    exit 0
-fi
 
 # Ask user for environment variables
 echo -e "${CYAN}${LIGHTBULB} Let's set up your .env file.${RESET}"

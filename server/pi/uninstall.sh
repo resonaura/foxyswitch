@@ -3,13 +3,6 @@
 # Service name
 SERVICE_NAME="foxyswitch-api"
 
-# Check if the script is run as root, if not, re-run with sudo
-if [ "$EUID" -ne 0 ]; then
-    echo "This script requires superuser privileges. Re-running with sudo..."
-    sudo bash "$0" "$@"
-    exit 0
-fi
-
 # Check if the service is installed
 if systemctl list-units --full -all | grep -Fq "$SERVICE_NAME.service"; then
     # Stopping the service
