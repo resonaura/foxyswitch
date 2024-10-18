@@ -1,0 +1,11 @@
+{
+  "homebridge": {
+    "url": "http://x.x.x.x",
+    "username": "admin",
+    "password": "xxxxxx"
+  },
+  "port": 2322,
+  "lightGroups": {
+    "example": ["xxxx", "xxxx", "xxxx"]
+  }
+}

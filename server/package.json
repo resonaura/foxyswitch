@@ -8,7 +8,11 @@
     "build": "tsc",
     "start": "ts-node ./dist/index.js",
     "pi-install": "bash ./pi/install.sh",
-    "pi-uninstall": "bash ./pi/uninstall.sh"
+    "pi-uninstall": "bash ./pi/uninstall.sh",
+    "configure": "ts-node ./scripts/configure.ts",
+    "update-credentials": "ts-node ./scripts/update/credentials.ts",
+    "update-ip": "ts-node ./scripts/update/ip.ts",
+    "update-port": "ts-node ./scripts/update/port.ts"
   },
   "devDependencies": {
     "@types/express": "^5.0.0",

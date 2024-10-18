@@ -3,14 +3,14 @@
 # Service name
 SERVICE_NAME="foxyswitch-api"
 
-# Цвета для терминала
+# Colors for terminal
 GREEN='\033[1;32m'
 YELLOW='\033[1;33m'
 CYAN='\033[1;36m'
 RED='\033[1;31m'
-RESET='\033[0m' # Сброс цветов
+RESET='\033[0m' # Reset colors
 
-# Эмодзи
+# Emojis
 CHECK_MARK="✅"
 CROSS_MARK="❌"
 BUILD_EMOJI="🛠️"
@@ -43,51 +43,20 @@ WORKING_DIRECTORY=$(pwd)
 # User name
 USER=$(whoami)
 
-# Ask user for environment variables
-echo -e "${CYAN}${LIGHTBULB} Let's set up your .env file.${RESET}"
-read -p "🌐 Homebridge server URL (default: http://localhost): " HOMEBRIDGE_URL
-HOMEBRIDGE_URL=${HOMEBRIDGE_URL:-localhost}
-
-read -p "👤 Homebridge username (default: admin): " HOMEBRIDGE_USERNAME
-HOMEBRIDGE_USERNAME=${HOMEBRIDGE_USERNAME:-admin}
-
-read -p "🔑 Homebridge password: " HOMEBRIDGE_PASSWORD
-HOMEBRIDGE_PASSWORD=${HOMEBRIDGE_PASSWORD:-}
-
-read -p "💡 UUIDs of the lamps (comma-separated): " HOMEBRIDGE_UUIDS
-while [ -z "$HOMEBRIDGE_UUIDS" ]; do
-    echo -e "${RED}${CROSS_MARK} UUIDs cannot be empty. Please provide UUIDs.${RESET}"
-    read -p "💡 UUIDs of the lamps (comma-separated): " HOMEBRIDGE_UUIDS
-done
-
-read -p "🔌 Port for the API (default: 2322): " PORT
-PORT=${PORT:-2322}
-
-# Create .env file
-echo -e "${YELLOW}${PACKAGE} Creating .env file...${RESET}"
-cat > .env << EOL
-# Homebridge server URL
-HOMEBRIDGE_URL=$HOMEBRIDGE_URL
-
-# Username for Homebridge
-HOMEBRIDGE_USERNAME=$HOMEBRIDGE_USERNAME
-
-# Password for Homebridge
-HOMEBRIDGE_PASSWORD=$HOMEBRIDGE_PASSWORD
-
-# UUIDs of the lamps (comma-separated)
-HOMEBRIDGE_UUIDS=$HOMEBRIDGE_UUIDS
-
-# Port for the API (optional)
-PORT=$PORT
-EOL
-
-echo -e "${GREEN}${CHECK_MARK} .env file has been created successfully.${RESET}"
+# Check if service already exists
+if sudo systemctl list-units --full -all | grep -Fq "$SERVICE_NAME.service"; then
+    echo -e "${YELLOW}${LIGHTBULB} Service ${SERVICE_NAME} is already installed.${RESET}"
+    exit 0
+fi
 
 # Install npm dependencies
 echo -e "${YELLOW}${PACKAGE} Installing npm dependencies...${RESET}"
 $NPM_PATH install
 echo -e "${GREEN}${CHECK_MARK} npm dependencies installed successfully.${RESET}"
+
+# Run configuration script
+echo -e "${CYAN}${GEAR} Running configuration script...${RESET}"
+$NPM_PATH run configure
 
 # Build the TypeScript project
 echo -e "${BUILD_EMOJI} Building the TypeScript project...${RESET}"
