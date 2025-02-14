@@ -1,10 +1,16 @@
-#include <WiFi.h>
-#include <HTTPClient.h>
+#ifdef ESP8266 
+ #include <ESP8266WiFi.h>
+ #include <ESP8266HTTPClient.h>
+#endif 
+#ifdef ESP32   
+ #include <WiFi.h>
+ #include <HTTPClient.h>
+#endif
 #include "credentials.h" // Wi-Fi and API credentials
 
 // Pins for voltage control
-#define INPUT_PIN1 32  // GPIO32
-#define INPUT_PIN2 33  // GPIO33
+#define INPUT_PIN1 D5  
+#define INPUT_PIN2 D6 
 #define DEBOUNCE_DELAY 50  // Debounce delay (ms)
 
 // State variables for pins
@@ -19,8 +25,8 @@ void setup() {
   Serial.begin(115200);
 
   // Configure pins as inputs with pull-down resistors
-  pinMode(INPUT_PIN1, INPUT_PULLDOWN);
-  pinMode(INPUT_PIN2, INPUT_PULLDOWN);
+  pinMode(INPUT_PIN1, INPUT);
+  pinMode(INPUT_PIN2, INPUT);
 
   // Connect to Wi-Fi
   WiFi.setHostname("foxyswitch");
