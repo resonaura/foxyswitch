@@ -72,6 +72,13 @@ async function refreshToken(): Promise<void> {
     token = response.data.access_token;
     //tokenExpiration = Date.now() + (response.data.expires_in - 300) * 1000;
 
+    await axios.get(`${config.homebridge.url}/api/accessories`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
     console.log('🔐 Token refreshed successfully');
   } catch (error: any) {
     console.error('❌ Failed to refresh token', error.message);
