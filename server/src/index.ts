@@ -1,6 +1,5 @@
 import express, { Request, Response } from 'express';
 import axios from 'axios';
-import cron from 'node-cron';
 import fs from 'fs';
 import path from 'path';
 
@@ -19,7 +18,6 @@ interface Config {
 const app = express();
 let config!: Config; // Используем оператор уверенности
 let token = '';
-let tokenExpiration = 0;
 
 // Load configuration
 function loadConfig() {
@@ -71,7 +69,7 @@ async function refreshToken(): Promise<void> {
     );
 
     token = response.data.access_token;
-    tokenExpiration = Date.now() + (response.data.expires_in - 300) * 1000;
+    //tokenExpiration = Date.now() + (response.data.expires_in - 300) * 1000;
 
     console.log('🔐 Token refreshed successfully');
   } catch (error: any) {
@@ -79,12 +77,9 @@ async function refreshToken(): Promise<void> {
   }
 }
 
-// Schedule token refresh
-cron.schedule('*/5 * * * *', () => {
-  if (Date.now() >= tokenExpiration) {
-    refreshToken();
-  }
-});
+setInterval(() => {
+  refreshToken();
+}, 30000);
 
 // Control lamps in a light group
 async function controlLightGroup(
