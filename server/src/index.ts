@@ -2,7 +2,7 @@ import express, { Request, Response } from 'express';
 import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
-import error2json from '@stdlib/error-to-json';
+import error2json from 'error-to-json';
 
 interface Config {
   homebridge: {
