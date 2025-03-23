@@ -162,6 +162,7 @@ app.get('/switch/on', async (req: Request, res: Response): Promise<void> => {
       details: results
     });
   } catch (error: any) {
+    console.error(error);
     res.status(400).json({
       error: error.message
     });
@@ -184,6 +185,7 @@ app.get('/switch/off', async (req: Request, res: Response): Promise<void> => {
       details: results
     });
   } catch (error: any) {
+    console.error(error);
     res.status(400).json({
       error: error.message
     });
