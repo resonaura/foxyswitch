@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
+import error2json from '@stdlib/error-to-json';
 
 interface Config {
   homebridge: {
@@ -115,7 +116,7 @@ async function controlLightGroup(
           `❌ Failed to control lamp with UUID ${uuid}`,
           error.message
         );
-        return `Failed to control lamp with UUID ${uuid}: ${error.message}`;
+        return `Failed to control lamp with UUID ${uuid}: ${JSON.stringify(error2json(error))}`;
       }
     })
   );
