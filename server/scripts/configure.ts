@@ -4,10 +4,7 @@ import {
   input,
   password,
   number,
-  confirm,
-  select,
-  checkbox // Используем checkbox вместо multiselect
-} from '@inquirer/prompts';
+  confirm} from '@inquirer/prompts';
 
 interface Config {
   homebridge: {
@@ -24,7 +21,7 @@ interface Config {
 async function configure() {
   console.log('🛠️  Welcome to the Foxy Switch API configuration wizard!');
 
-  const configPath = path.join(__dirname, '../config.json');
+  const configPath = path.join(import.meta.dirname, '../config.json');
   let config: Config = {
     homebridge: {
       url: 'http://localhost',

@@ -15,7 +15,7 @@ interface Config {
 }
 
 async function updatePort() {
-  const configPath = path.join(__dirname, '../config.json');
+  const configPath = path.join(import.meta.dirname, '../config.json');
   if (!fs.existsSync(configPath)) {
     console.error(
       '🔴 Config file is missing. Please run the configuration script.'

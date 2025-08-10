@@ -2,34 +2,32 @@
   "name": "foxyswitch-api",
   "version": "1.0.0",
   "description": "Foxy Switch API",
-  "main": "foxyswitch-api.js",
+  "type": "module",
   "scripts": {
-    "dev": "ts-node-dev --respawn ./src/index.ts",
-    "build": "tsc",
-    "start": "ts-node ./dist/index.js",
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc --build",
+    "start": "node dist/index.js",
+    "pi-start": "sudo systemctl start foxyswitch-api.service",
+    "pi-stop": "sudo systemctl stop foxyswitch-api.service",
+    "pi-restart": "sudo systemctl restart foxyswitch-api.service",
     "pi-install": "bash ./pi/install.sh",
     "pi-uninstall": "bash ./pi/uninstall.sh",
-    "configure": "ts-node ./scripts/configure.ts",
-    "update-credentials": "ts-node ./scripts/update/credentials.ts",
-    "update-ip": "ts-node ./scripts/update/ip.ts",
-    "update-port": "ts-node ./scripts/update/port.ts"
+    "pi-update": "git pull && npm install && npm run build && npm run pi-restart",
+    "configure": "tsx ./scripts/configure.ts",
+    "update-credentials": "tsx ./scripts/update/credentials.ts",
+    "update-ip": "tsx ./scripts/update/ip.ts",
+    "update-port": "tsx ./scripts/update/port.ts"
   },
   "devDependencies": {
-    "@types/express": "^5.0.0",
+    "@inquirer/prompts": "^7.8.1",
     "@types/node": "^22.7.2",
-    "@types/node-cron": "^3.0.11",
     "prettier": "^3.3.3",
-    "ts-node": "^10.9.2",
-    "ts-node-dev": "^2.0.0",
+    "tsx": "^4.20.3",
     "typescript": "^5.6.2"
   },
   "dependencies": {
-    "@inquirer/prompts": "^6.0.1",
-    "@stdlib/error-to-json": "^0.2.2",
     "axios": "^1.7.7",
     "dotenv": "^16.4.5",
-    "error-to-json": "^2.0.0",
-    "express": "^4.21.0",
-    "node-cron": "^3.0.3"
+    "fastify": "^5.4.0"
   }
 }
