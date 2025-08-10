@@ -25,9 +25,8 @@ let token = '';
 
 /** Настройки */
 const WARMUP_EVERY_MS = 60_000; // как часто «греть» аксессуары
-const REFRESH_TOKEN_EVERY_MS = 30_000; // как часто обновлять токен
+const REFRESH_TOKEN_EVERY_MS = 120_000; // как часто обновлять токен
 const WS_READY_TIMEOUT_MS = 3_000; // сколько ждать ready после коннекта
-const USE_WS_FOR_CONTROL = true; // можно выключить, чтобы всегда бить в REST
 
 /** Маркеры времени */
 let lastWarmupAt = 0;
@@ -51,7 +50,7 @@ const httpsAgent = new https.Agent({
 /** Единый axios-клиент до Homebridge */
 let hb!: AxiosInstance;
 
-/** Socket.IO (прогрев через /accessories) */
+/** Socket.IO — только для прогрева (/accessories) */
 let ws: Socket | null = null;
 let wsReadyForControl = false;
 
@@ -93,11 +92,10 @@ function initHttpClient() {
   });
 }
 
-/** Коннект к Socket.IO неймспейсу /accessories */
+/** Коннект к Socket.IO неймспейсу /accessories (прогрев) */
 async function connectWs(): Promise<void> {
   if (!token) return;
 
-  // Если уже есть сокет — закрываем перед пересозданием (например, после обновления токена)
   try {
     ws?.close();
   } catch {}
@@ -108,7 +106,7 @@ async function connectWs(): Promise<void> {
   ws = io(`${base}/accessories`, {
     path: '/socket.io',
     transports: ['websocket'],
-    query: { token }, // важно: токен в query, как делает UI
+    query: { token }, // токен в query, как делает UI
     reconnection: true,
     reconnectionDelay: 500,
     reconnectionAttempts: Infinity,
@@ -116,14 +114,13 @@ async function connectWs(): Promise<void> {
   });
 
   ws.on('connect', () => {
-    // Ровно как UI: сперва layout, затем accessories
     ws?.emit('get-layout', { user: 'admin' });
     ws?.emit('get-accessories');
     app.log.info('🧦 WS connected, requested layout + accessories');
   });
 
-  ws.on('accessories-data', (_batch) => {
-    // приходят пачки данных — сам факт будит HB
+  ws.on('accessories-data', () => {
+    // сам факт прихода батчей «будит» HB
     lastWarmupAt = Date.now();
   });
 
@@ -144,7 +141,7 @@ async function connectWs(): Promise<void> {
   });
 }
 
-/** Короткий «сеанс прогрева» (если не держим постоянный сокет) */
+/** Короткий «сеанс прогрева» (если вдруг сокет не держим) */
 async function warmupOnceViaWs(): Promise<void> {
   if (!token) return;
   await connectWs();
@@ -152,9 +149,6 @@ async function warmupOnceViaWs(): Promise<void> {
   while (!wsReadyForControl && Date.now() - start < WS_READY_TIMEOUT_MS) {
     await new Promise((r) => setTimeout(r, 50));
   }
-  try {
-    ws?.close();
-  } catch {}
 }
 
 /** Перманентный прогрев — держим сокет постоянно */
@@ -163,7 +157,7 @@ async function keepWarmWs(): Promise<void> {
   await connectWs();
 }
 
-/** Старый REST-прогрев — оставим как запасной план */
+/** Доп. REST-прогрев как «страховка» */
 async function warmUpAccessories(): Promise<void> {
   if (!token) return;
   try {
@@ -180,10 +174,7 @@ async function warmUpAccessories(): Promise<void> {
 async function ensureWarmed(): Promise<void> {
   const tooOld = Date.now() - lastWarmupAt > WARMUP_EVERY_MS;
   if (!ws || !ws.connected || !wsReadyForControl || tooOld) {
-    // попробуем «правильный» прогрев через WS
     await warmupOnceViaWs();
-
-    // если не успели перейти в ready — добьём REST’ом
     if (!wsReadyForControl) {
       await warmUpAccessories();
     }
@@ -220,12 +211,12 @@ async function refreshToken(): Promise<void> {
 setInterval(() => {
   refreshToken();
 }, REFRESH_TOKEN_EVERY_MS);
-// Доп. REST-прогрев как «страховка» — можно выключить, если держим WS
+// Доп. REST-прогрев как «страховка»
 setInterval(() => {
   warmUpAccessories();
 }, WARMUP_EVERY_MS);
 
-/** Управление группой света */
+/** Управление группой света — ТОЛЬКО REST */
 async function controlLightGroup(
   groupId: string,
   value: boolean
@@ -239,25 +230,6 @@ async function controlLightGroup(
   const results = await Promise.all(
     uuids.map(async (uuid) => {
       const url = `/api/accessories/${encodeURIComponent(uuid)}`;
-
-      // 1) Пытаемся через WS (быстро и дополнительно «будит» HB)
-      if (USE_WS_FOR_CONTROL && ws && ws.connected && wsReadyForControl) {
-        try {
-          ws.emit('accessory-control', {
-            set: { uniqueId: uuid, characteristicType: 'On', value }
-          });
-          const msg = `Lamp ${uuid} set ${value ? 'on' : 'off'} via WS`;
-          app.log.info(msg);
-          return msg;
-        } catch (e: any) {
-          app.log.warn(
-            { err: errToJSON(e), uuid },
-            'WS control failed → fallback to REST'
-          );
-        }
-      }
-
-      // 2) Fallback: REST
       try {
         await hb.put(url, { characteristicType: 'On', value });
         const msg = `Lamp ${uuid} set ${value ? 'on' : 'off'} via REST`;
