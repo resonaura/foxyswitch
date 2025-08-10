@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "Foxy Switch API",
   "type": "module",
+  "private": true,
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc --build",
@@ -13,10 +14,10 @@
     "pi-install": "bash ./pi/install.sh",
     "pi-uninstall": "bash ./pi/uninstall.sh",
     "pi-update": "git pull && npm install && npm run build && npm run pi-restart",
-    "configure": "tsx ./scripts/configure.ts",
-    "update-credentials": "tsx ./scripts/update/credentials.ts",
-    "update-ip": "tsx ./scripts/update/ip.ts",
-    "update-port": "tsx ./scripts/update/port.ts"
+    "configure": "tsx ./src/scripts/configure.ts",
+    "update-credentials": "tsx ./src/scripts/update/credentials.ts",
+    "update-ip": "tsx ./src/scripts/update/ip.ts",
+    "update-port": "tsx ./src/scripts/update/port.ts"
   },
   "devDependencies": {
     "@inquirer/prompts": "^7.8.1",

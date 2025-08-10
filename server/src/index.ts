@@ -4,6 +4,7 @@ import fs from 'fs';
 import path from 'path';
 import http from 'http';
 import https from 'https';
+import dotenv from 'dotenv';
 
 interface Config {
   homebridge: {
@@ -107,7 +108,7 @@ function migrateEnv() {
   const envPath = path.join(import.meta.dirname, '../.env');
   const configPath = path.join(import.meta.dirname, '../config.json');
   if (fs.existsSync(envPath)) {
-    require('dotenv').config({ path: envPath });
+    dotenv.config({ path: envPath });
     const oldConfig: Config = {
       homebridge: {
         url: process.env.HOMEBRIDGE_URL || 'http://localhost',
