@@ -216,6 +216,45 @@ setInterval(() => {
   warmUpAccessories();
 }, WARMUP_EVERY_MS);
 
+/** Управление одной лампой с ретраями и авто-рефрешем токена */
+async function setLampWithRetries(uuid: string, value: boolean): Promise<void> {
+  const url = `/api/accessories/${encodeURIComponent(uuid)}`;
+  let warmupTried = false;
+
+  for (let attempt = 1; attempt <= 3; attempt++) {
+    try {
+      await hb.put(url, { characteristicType: 'On', value });
+      return; // успех
+    } catch (err: any) {
+      const status = err?.response?.status;
+
+      // 401/403 — освежаем токен и пробуем снова (до 3х раз)
+      if (status === 401 || status === 403) {
+        app.log.warn(
+          { uuid, attempt, status },
+          '🔐 401/403: refreshing token and retrying'
+        );
+        await refreshToken();
+        continue;
+      }
+
+      // 400/404 — один раз быстрая «разморозка», затем повтор
+      if ((status === 400 || status === 404) && !warmupTried) {
+        warmupTried = true;
+        app.log.warn({ uuid, attempt, status }, '🧯 400/404: warmup and retry');
+        await warmupOnceViaWs();
+        continue;
+      }
+
+      // если это не наши «восстанавливаемые» ошибки — фейлим сразу
+      if (attempt >= 3) throw err;
+
+      // на всякий случай небольшой yield между повторами
+      await new Promise((r) => setTimeout(r, 100));
+    }
+  }
+}
+
 /** Управление группой света — ТОЛЬКО REST */
 async function controlLightGroup(
   groupId: string,
@@ -229,35 +268,17 @@ async function controlLightGroup(
 
   const results = await Promise.all(
     uuids.map(async (uuid) => {
-      const url = `/api/accessories/${encodeURIComponent(uuid)}`;
       try {
-        await hb.put(url, { characteristicType: 'On', value });
+        await setLampWithRetries(uuid, value);
         const msg = `Lamp ${uuid} set ${value ? 'on' : 'off'} via REST`;
         app.log.info(msg);
         return msg;
-      } catch (err1: any) {
-        const status = err1?.response?.status;
-        if (status === 404 || status === 400) {
-          // быстрый прогрев + повтор
-          await warmupOnceViaWs();
-          try {
-            await hb.put(url, { characteristicType: 'On', value });
-            const msg = `Lamp ${uuid} set ${value ? 'on' : 'off'} via REST (after warmup)`;
-            app.log.info(msg);
-            return msg;
-          } catch (err2: any) {
-            app.log.error(
-              { err: errToJSON(err2), uuid },
-              '❌ Failed to control lamp after retry'
-            );
-            return `Failed to control lamp ${uuid}: ${JSON.stringify(errToJSON(err2))}`;
-          }
-        }
+      } catch (err: any) {
         app.log.error(
-          { err: errToJSON(err1), uuid },
-          '❌ Failed to control lamp'
+          { err: errToJSON(err), uuid },
+          '❌ Failed to control lamp after retries'
         );
-        return `Failed to control lamp ${uuid}: ${JSON.stringify(errToJSON(err1))}`;
+        return `Failed to control lamp ${uuid}: ${JSON.stringify(errToJSON(err))}`;
       }
     })
   );
