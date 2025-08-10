@@ -17,7 +17,7 @@ interface Config {
   };
 }
 
-const app = Fastify({ logger: true });
+const app = Fastify({ logger: true, ignoreTrailingSlash: true });
 let config!: Config;
 let token = '';
 
